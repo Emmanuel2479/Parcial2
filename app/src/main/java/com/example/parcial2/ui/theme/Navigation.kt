@@ -34,7 +34,7 @@ fun Navigation() {
             PujarScreen(navController, pujarViewModel)
         }
         composable("detalle/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+            val id = backStackEntry.arguments?.getString("id")
             if (id != null) {
                 DetalleScreen(navController, detalleViewModel, id)
             }

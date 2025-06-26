@@ -15,25 +15,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.parcial2.data.Modelo.Rifa
 import com.example.parcial2.viewmodel.DetalleViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun DetalleScreen(navController: NavController, viewModel: DetalleViewModel, rifaId: Int) {
+fun DetalleScreen(navController: NavController, viewModel: DetalleViewModel, rifaId: String) {
     val scope = rememberCoroutineScope()
     var nombre by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("") }
     var boletoGanador by remember { mutableStateOf(TextFieldValue("")) }
     var estaHabilitada by remember { mutableStateOf(true) }
-
-    val numerosInactivos = listOf(1, 17, 31, 53, 88)
     var numerosSeleccionados by remember { mutableStateOf(listOf<Int>()) }
+
+    val numerosInactivos = listOf(1, 17, 31, 53, 88) // opcional, si quieres mantener bloqueos
 
     LaunchedEffect(rifaId) {
         scope.launch {
             val rifa = viewModel.obtenerRifaPorId(rifaId)
-            nombre = rifa?.nombre ?: "No encontrada"
-            fecha = rifa?.fecha ?: "-"
+            rifa?.let {
+                nombre = it.nombre
+                fecha = it.fecha
+                boletoGanador = TextFieldValue(it.boletoGanador)
+                estaHabilitada = it.habilitada
+                numerosSeleccionados = it.numerosSeleccionados
+            }
         }
     }
 
@@ -42,9 +48,11 @@ fun DetalleScreen(navController: NavController, viewModel: DetalleViewModel, rif
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("Rifas $rifaId", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
+        Text("Rifa: $nombre", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Fecha: $fecha", style = MaterialTheme.typography.bodyMedium)
 
+        Spacer(modifier = Modifier.height(16.dp))
         LazyVerticalGrid(
             columns = GridCells.Fixed(10),
             modifier = Modifier
@@ -93,7 +101,7 @@ fun DetalleScreen(navController: NavController, viewModel: DetalleViewModel, rif
 
         Spacer(modifier = Modifier.height(16.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Inhabilitar")
+            Text("¿Rifa inhabilitada?")
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
                 checked = !estaHabilitada,
@@ -108,9 +116,18 @@ fun DetalleScreen(navController: NavController, viewModel: DetalleViewModel, rif
         ) {
             Button(
                 onClick = {
-                    // lógica de guardar si aplica
+                    val actualizada = Rifa(
+                        id = rifaId,
+                        nombre = nombre,
+                        fecha = fecha,
+                        boletoGanador = boletoGanador.text,
+                        numerosSeleccionados = numerosSeleccionados,
+                        habilitada = estaHabilitada
+                    )
+                    viewModel.guardarCambios(rifaId, actualizada)
+                    navController.popBackStack()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5A5F))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
                 Text("Guardar")
             }
@@ -134,3 +151,4 @@ fun DetalleScreen(navController: NavController, viewModel: DetalleViewModel, rif
         }
     }
 }
+

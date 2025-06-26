@@ -2,8 +2,8 @@ package com.example.parcial2.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.parcial2.data.Repository.RifaRepository
 import com.example.parcial2.data.Modelo.Rifa
+import com.example.parcial2.data.Repository.RifaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -18,14 +18,21 @@ class ListaViewModel(private val repository: RifaRepository) : ViewModel() {
 
     fun cargarRifas() {
         viewModelScope.launch {
-            _rifas.value = repository.obtenerTodas()
+            try {
+                _rifas.value = repository.obtenerTodas()
+            } catch (e: Exception) {
+                _rifas.value = emptyList() // o manejar error
+            }
         }
     }
 
     fun buscarRifas(query: String) {
         viewModelScope.launch {
-            _rifas.value = if (query.isBlank()) repository.obtenerTodas()
-            else repository.buscar(query)
+            try {
+                _rifas.value = repository.buscar(query)
+            } catch (e: Exception) {
+                _rifas.value = emptyList()
+            }
         }
     }
 }
